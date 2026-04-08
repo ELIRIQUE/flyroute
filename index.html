@@ -1,0 +1,916 @@
+oute<!DOCTYPE html>
+<html lang="pt-PT" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlyRoute - Pirenópolis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981', // Emerald
+                            600: '#059669',
+                            900: '#064e3b',
+                        },
+                        accent: {
+                            500: '#f59e0b', // Amber/Colonial
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        
+        /* Estilos do roteador SPA */
+        .page-view { display: none; }
+        .page-view.active { display: block; animation: fadeInUp 0.5s ease-out forwards; }
+        
+        /* Estilo para as imagens placeholder */
+        .img-placeholder {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            color: #064e3b;
+            font-weight: 600;
+            border: 1px solid #10b981;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 antialiased bg-slate-50">
+
+    <!-- Navegação -->
+    <nav class="fixed w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-100 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logótipo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                    </div>
+                    <span class="font-bold text-2xl tracking-tight text-gray-900">FlyRoute</span>
+                </div>
+
+                <!-- Links Desktop -->
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="#" onclick="navigate('home', 'inicio'); return false;" class="lang-string text-gray-600 hover:text-brand-600 font-medium transition-colors" data-pt="Início" data-en="Home">Início</a>
+                    <a href="#" onclick="navigate('home', 'historia'); return false;" class="lang-string text-gray-600 hover:text-brand-600 font-medium transition-colors" data-pt="História" data-en="History">História</a>
+                    <a href="#" onclick="navigate('home', 'atrativos'); return false;" class="lang-string text-gray-600 hover:text-brand-600 font-medium transition-colors" data-pt="Atrativos" data-en="Attractions">Atrativos</a>
+                    <a href="#" onclick="navigate('passagens'); return false;" class="lang-string text-brand-600 font-bold hover:text-brand-700 transition-colors" data-pt="Passagens" data-en="Tickets">Passagens</a>
+                    <a href="#" onclick="navigate('home', 'motivos'); return false;" class="lang-string text-gray-600 hover:text-brand-600 font-medium transition-colors" data-pt="Por que visitar?" data-en="Why visit?">Por que visitar?</a>
+                    
+                    <!-- Seletor de Idioma -->
+                    <div class="flex items-center bg-gray-100 rounded-full p-1 ml-4 border border-gray-200">
+                        <button onclick="setLanguage('pt')" id="btn-pt" class="px-3 py-1 rounded-full text-sm font-bold bg-white shadow-sm text-brand-600 transition-all">PT</button>
+                        <button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 rounded-full text-sm font-bold text-gray-500 hover:text-gray-700 transition-all">EN</button>
+                    </div>
+                </div>
+
+                <!-- Botão Menu Mobile -->
+                <div class="md:hidden flex items-center gap-4">
+                    <!-- Seletor de Idioma Mobile -->
+                    <div class="flex items-center bg-gray-100 rounded-full p-1 border border-gray-200">
+                        <button onclick="setLanguage('pt')" id="btn-pt-mob" class="px-2 py-1 rounded-full text-xs font-bold bg-white shadow-sm text-brand-600 transition-all">PT</button>
+                        <button onclick="setLanguage('en')" id="btn-en-mob" class="px-2 py-1 rounded-full text-xs font-bold text-gray-500 transition-all">EN</button>
+                    </div>
+                    <button id="mobile-menu-button" class="text-gray-600 hover:text-gray-900 focus:outline-none p-2">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Mobile -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-lg">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="#" onclick="navigate('home', 'inicio'); return false;" class="lang-string block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-brand-50" data-pt="Início" data-en="Home">Início</a>
+                <a href="#" onclick="navigate('home', 'historia'); return false;" class="lang-string block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-brand-50" data-pt="História" data-en="History">História</a>
+                <a href="#" onclick="navigate('home', 'atrativos'); return false;" class="lang-string block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-brand-50" data-pt="Atrativos" data-en="Attractions">Atrativos</a>
+                <a href="#" onclick="navigate('passagens'); return false;" class="lang-string block px-3 py-3 rounded-md text-base font-bold text-brand-600 hover:text-brand-700 hover:bg-brand-50" data-pt="Passagens" data-en="Tickets">Passagens</a>
+                <a href="#" onclick="navigate('home', 'motivos'); return false;" class="lang-string block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-brand-50" data-pt="Por que visitar?" data-en="Why visit?">Por que visitar?</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTAINER SPA -->
+    <div id="app-container">
+        <!-- VISTA: HOME -->
+        <div id="view-home" class="page-view active">
+
+    <!-- Secção Hero -->
+    <section id="inicio" class="pt-32 pb-20 lg:pt-40 lg:pb-24 overflow-hidden relative">
+        <div class="absolute top-0 left-1/2 w-full -translate-x-1/2 h-full overflow-hidden -z-10">
+            <div class="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-brand-100/60 blur-3xl"></div>
+            <div class="absolute top-[30%] -left-[10%] w-[40%] h-[40%] rounded-full bg-accent-500/10 blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="text-center max-w-4xl mx-auto fade-in-up">
+                <span class="lang-string inline-block py-1.5 px-4 rounded-full bg-brand-100 text-brand-600 font-semibold text-sm mb-6 border border-brand-200" data-pt="📍 Goiás, Brasil" data-en="📍 Goiás, Brazil">
+                    📍 Goiás, Brasil
+                </span>
+                <h1 class="lang-string text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight mb-8" data-pt="Descubra a Magia de <span class='text-brand-600'>Pirenópolis</span>" data-en="Discover the Magic of <span class='text-brand-600'>Pirenópolis</span>">
+                    Descubra a Magia de <span class="text-brand-600">Pirenópolis</span>
+                </h1>
+                <p class="lang-string text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto" data-pt="Natureza exuberante, cachoeiras cristalinas, arquitetura colonial e uma cultura vibrante esperam por si no coração do Cerrado." data-en="Lush nature, crystal-clear waterfalls, colonial architecture, and a vibrant culture await you in the heart of the Cerrado.">
+                    Natureza exuberante, cachoeiras cristalinas, arquitetura colonial e uma cultura vibrante esperam por si no coração do Cerrado.
+                </p>
+                <div class="flex gap-4 justify-center">
+                    <a href="#atrativos" onclick="navigate('home', 'atrativos'); return false;" class="lang-string bg-brand-600 hover:bg-brand-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-lg shadow-brand-600/30" data-pt="Explorar Atrativos" data-en="Explore Attractions">
+                        Explorar Atrativos
+                    </a>
+                </div>
+            </div>
+
+            <!-- 1. IMAGEM PRINCIPAL (HERO) -->
+            <!-- Para alterar, troque o link dentro de src="..." -->
+            <a href="#" onclick="navigate('guia'); return false;" class="block mt-16 rounded-3xl overflow-hidden shadow-2xl aspect-[21/9] w-full fade-in-up delay-200 cursor-pointer group relative">
+                <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
+                <img src="https://i.imgur.com/8WzG6Hl.png" alt="Vista Panorâmica do Cerrado" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                <div class="absolute bottom-6 right-6 z-20 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold text-gray-800 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg> 
+                    <span class="lang-string" data-pt="Ler Guia Completo" data-en="Read Full Guide">Ler Guia Completo</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Secção História -->
+    <section id="historia" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                
+                <!-- 2. IMAGEM DA HISTÓRIA -->
+                <!-- Para alterar, troque o link dentro de src="..." -->
+                <a href="#" onclick="navigate('historia-detalhe'); return false;" class="block rounded-3xl aspect-square w-full shadow-lg overflow-hidden cursor-pointer group relative text-xl md:text-2xl">
+                    <img src="https://www.temporadaempiri.com.br/media/63a761c660c15311b69ae476" alt="Arquitetura Colonial de Pirenópolis" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500 z-10 flex items-center justify-center">
+                        <div class="bg-white/90 backdrop-blur-sm p-4 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-xl transform group-hover:scale-110 duration-300">
+                            <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </div>
+                    </div>
+                </a>
+                
+                <div>
+                    <h2 class="lang-string text-3xl md:text-4xl font-bold text-gray-900 mb-6" data-pt="Uma Viagem no Tempo" data-en="A Journey Through Time">Uma Viagem no Tempo</h2>
+                    <p class="lang-string text-lg text-gray-600 mb-6 leading-relaxed" data-pt="Fundada em 1727 durante o ciclo do ouro, Pirenópolis é um verdadeiro museu a céu aberto. Tombada como Patrimônio Nacional, a cidade preserva intacto o seu charme colonial, com casarões antigos e ruas de pedra." data-en="Founded in 1727 during the gold rush, Pirenópolis is a true open-air museum. Listed as a National Heritage site, the city preserves its colonial charm intact, with ancient mansions and cobblestone streets.">
+                        Fundada em 1727 durante o ciclo do ouro, Pirenópolis é um verdadeiro museu a céu aberto. Tombada como Patrimônio Nacional, a cidade preserva intacto o seu charme colonial, com casarões antigos e ruas de pedra.
+                    </p>
+                    <p class="lang-string text-lg text-gray-600 leading-relaxed" data-pt="Caminhar pelo seu centro histórico é respirar a história do Brasil Central, num ambiente onde a tradição se encontra com a hospitalidade calorosa do povo goiano." data-en="Walking through its historic center is breathing the history of Central Brazil, in an environment where tradition meets the warm hospitality of the local people.">
+                        Caminhar pelo seu centro histórico é respirar a história do Brasil Central, num ambiente onde a tradição se encontra com a hospitalidade calorosa do povo goiano.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secção Atrativos -->
+    <section id="atrativos" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="lang-string text-3xl md:text-4xl font-bold text-gray-900 mb-4" data-pt="O Que Fazer em Piri" data-en="Things to Do in Piri">O Que Fazer em Piri</h2>
+                <p class="lang-string text-lg text-gray-600 max-w-2xl mx-auto" data-pt="De aventuras na natureza a festivais culturais, Pirenópolis oferece experiências inesquecíveis." data-en="From nature adventures to cultural festivals, Pirenópolis offers unforgettable experiences.">De aventuras na natureza a festivais culturais, Pirenópolis oferece experiências inesquecíveis.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1: Cachoeiras -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-100 group">
+                    
+                    <!-- 3. IMAGEM DA CACHOEIRA -->
+                    <a href="#" onclick="navigate('natureza'); return false;" class="block h-56 w-full text-lg relative overflow-hidden cursor-pointer">
+                        <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0b/0b/a2/ee/topo-dos-pirineus.jpg?w=600&h=-1&s=1" alt="Cachoeira" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                             <svg class="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        </div>
+                    </a>
+                    
+                    <div class="p-8">
+                        <div class="text-brand-600 font-bold text-sm mb-2 uppercase tracking-wide lang-string" data-pt="Natureza" data-en="Nature">Natureza</div>
+                        <h3 class="lang-string text-2xl font-bold text-gray-900 mb-3" data-pt="Paraíso das Cachoeiras" data-en="Waterfall Paradise">Paraíso das Cachoeiras</h3>
+                        <p class="lang-string text-gray-600" data-pt="Mais de 80 quedas d'água catalogadas, como a Cachoeira do Abade e Lázaro. Águas cristalinas perfeitas para renovar as energias no meio do Cerrado." data-en="Over 80 cataloged waterfalls, such as Abade and Lázaro. Crystal clear waters perfect for renewing your energy in the middle of the Cerrado.">
+                            Mais de 80 quedas d'água catalogadas, como a Cachoeira do Abade e Lázaro. Águas cristalinas perfeitas para renovar as energias no meio do Cerrado.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Cultura -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-100 group">
+                    
+                    <!-- 4. IMAGEM DA CULTURA -->
+                    <a href="#" onclick="navigate('cultura'); return false;" class="block h-56 w-full text-lg relative overflow-hidden cursor-pointer">
+                        <img src="https://go.agenciasebrae.com.br/wp-content/uploads/sites/9/2023/07/Cavalhadas1-scaled.jpg" alt="Cultura Tradicional Festiva" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                             <svg class="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        </div>
+                    </a>
+                    
+                    <div class="p-8">
+                        <div class="text-accent-600 font-bold text-sm mb-2 uppercase tracking-wide lang-string" data-pt="Tradição" data-en="Tradition">Tradição</div>
+                        <h3 class="lang-string text-2xl font-bold text-gray-900 mb-3" data-pt="Cultura Vibrante" data-en="Vibrant Culture">Cultura Vibrante</h3>
+                        <p class="lang-string text-gray-600" data-pt="Berço da Festa do Divino e das famosas Cavalhadas. As ruas ganham vida com os icônicos Mascarados, música folclórica e muita fé." data-en="Birthplace of the Divine Festival and the famous Cavalhadas. The streets come alive with the iconic Mascarados, folk music, and faith.">
+                            Berço da Festa do Divino e das famosas Cavalhadas. As ruas ganham vida com os icônicos Mascarados, música folclórica e muita fé.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Gastronomia -->
+                <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-gray-100 group">
+                    
+                    <!-- 5. IMAGEM DA GASTRONOMIA -->
+                    <a href="#" onclick="navigate('gastronomia'); return false;" class="block h-56 w-full text-lg relative overflow-hidden cursor-pointer">
+                        <img src="https://curtamais.com.br/goiania/wp-content/uploads/sites/2/2023/08/a27dd118cb73124a19e6e43c028f9f6e-768x444.png" alt="Gastronomia Local" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                             <svg class="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        </div>
+                    </a>
+                    
+                    <div class="p-8">
+                        <div class="text-orange-600 font-bold text-sm mb-2 uppercase tracking-wide lang-string" data-pt="Culinária" data-en="Culinary">Culinária</div>
+                        <h3 class="lang-string text-2xl font-bold text-gray-900 mb-3" data-pt="Sabores do Cerrado" data-en="Flavors of Cerrado">Sabores do Cerrado</h3>
+                        <p class="lang-string text-gray-600" data-pt="Experimente a autêntica comida caipira. Do tradicional empadão goiano à pamonha e ao arroz com pequi, servidos em charmosos bistrôs locais." data-en="Taste authentic country food. From the traditional empadão goiano to pamonha and rice with pequi, served in charming local bistros.">
+                            Experimente a autêntica comida caipira. Do tradicional empadão goiano à pamonha e ao arroz com pequi, servidos em charmosos bistrôs locais.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secção Motivos -->
+    <section id="motivos" class="py-24 bg-brand-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 30px 30px;"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="lang-string text-3xl md:text-5xl font-bold mb-4" data-pt="Por que Pirenópolis?" data-en="Why Pirenópolis?">Por que Pirenópolis?</h2>
+                <p class="lang-string text-lg text-brand-100 max-w-2xl mx-auto" data-pt="Motivos não faltam para arrumar as malas e visitar." data-en="There are plenty of reasons to pack your bags and visit.">Motivos não faltam para arrumar as malas e visitar.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-brand-800/50 p-6 rounded-2xl border border-brand-700/50 backdrop-blur-sm text-center">
+                    <div class="text-4xl mb-4">🍃</div>
+                    <h4 class="lang-string font-bold text-xl mb-2" data-pt="Refúgio" data-en="Refuge">Refúgio</h4>
+                    <p class="lang-string text-brand-100 text-sm" data-pt="Fuja da correria das grandes cidades e conecte-se com a paz da natureza." data-en="Escape the rush of big cities and connect with the peace of nature.">Fuja da correria das grandes cidades e conecte-se com a paz da natureza.</p>
+                </div>
+                <div class="bg-brand-800/50 p-6 rounded-2xl border border-brand-700/50 backdrop-blur-sm text-center">
+                    <div class="text-4xl mb-4">📸</div>
+                    <h4 class="lang-string font-bold text-xl mb-2" data-pt="Cenários" data-en="Scenery">Cenários</h4>
+                    <p class="lang-string text-brand-100 text-sm" data-pt="Cada rua de pedra e casarão colonial é um cenário perfeito para fotos." data-en="Every cobblestone street and colonial mansion is a perfect photo setting.">Cada rua de pedra e casarão colonial é um cenário perfeito para fotos.</p>
+                </div>
+                <div class="bg-brand-800/50 p-6 rounded-2xl border border-brand-700/50 backdrop-blur-sm text-center">
+                    <div class="text-4xl mb-4">🥂</div>
+                    <h4 class="lang-string font-bold text-xl mb-2" data-pt="Romance" data-en="Romance">Romance</h4>
+                    <p class="lang-string text-brand-100 text-sm" data-pt="Clima de serra, pousadas charmosas e jantares à luz de velas na Rua do Lazer." data-en="Mountain climate, charming inns, and candlelight dinners on Rua do Lazer.">Clima de serra, pousadas charmosas e jantares à luz de velas na Rua do Lazer.</p>
+                </div>
+                <div class="bg-brand-800/50 p-6 rounded-2xl border border-brand-700/50 backdrop-blur-sm text-center">
+                    <div class="text-4xl mb-4">🧗‍♂️</div>
+                    <h4 class="lang-string font-bold text-xl mb-2" data-pt="Aventura" data-en="Adventure">Aventura</h4>
+                    <p class="lang-string text-brand-100 text-sm" data-pt="Trilhas, arvorismo e passeios de quadriciclo para os mais radicais." data-en="Trails, canopy tours, and ATV rides for the most adventurous.">Trilhas, arvorismo e passeios de quadriciclo para os mais radicais.</p>
+                </div>
+        </div>
+    </section>
+
+        </div> <!-- FIM DA VISTA: HOME -->
+
+        <!-- VISTA: NATUREZA (CACHOEIRAS E CAMPOS) -->
+        <div id="view-natureza" class="page-view pt-32 pb-24 bg-white min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button onclick="navigate('home', 'atrativos')" class="mb-8 flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="lang-string" data-pt="Voltar aos Atrativos" data-en="Back to Attractions">Voltar aos Atrativos</span>
+                </button>
+                <h1 class="lang-string text-4xl md:text-6xl font-extrabold text-gray-900 mb-6" data-pt="Natureza & Cachoeiras" data-en="Nature & Waterfalls">Natureza & Cachoeiras</h1>
+                <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0b/0b/a2/ee/topo-dos-pirineus.jpg?w=600&h=-1&s=1" alt="Cachoeira de Pirenópolis" class="w-full h-80 object-cover rounded-3xl shadow-lg mb-8">
+                <div class="prose prose-lg text-gray-600 max-w-none">
+                    <p class="lang-string mb-4" data-pt="Pirenópolis é cercada pela exuberância do Cerrado brasileiro. As formações rochosas, os campos verdes e as mais de 80 cachoeiras catalogadas fazem deste lugar um verdadeiro santuário ecológico." data-en="Pirenópolis is surrounded by the exuberance of the Brazilian Cerrado. The rock formations, green fields, and over 80 cataloged waterfalls make this place a true ecological sanctuary.">Pirenópolis é cercada pela exuberância do Cerrado brasileiro. As formações rochosas, os campos verdes e as mais de 80 cachoeiras catalogadas fazem deste lugar um verdadeiro santuário ecológico.</p>
+                    <h3 class="lang-string text-2xl font-bold text-gray-900 mt-8 mb-4" data-pt="Cachoeiras Imperdíveis" data-en="Must-Visit Waterfalls">Cachoeiras Imperdíveis</h3>
+                    <ul class="space-y-4 mb-8">
+                        
+                        <!-- 👇 ITEM: CACHOEIRA DO ABADE 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Cachoeira do Abade', 
+                                'Abade Waterfall', 
+                                'A Cachoeira do Abade é uma das mais famosas de Pirenópolis, com uma queda impressionante de 22 metros. Além da vista deslumbrante, o local oferece uma infraestrutura completa com trilhas bem cuidadas, pontes suspensas, mirantes e um restaurante. É perfeita para mergulhar, tirar fotografias e passar o dia inteiro imerso na natureza com conforto.', 
+                                'The Abade Waterfall is one of the most famous in Pirenópolis, with an impressive 22-meter drop. In addition to the stunning view, the location offers a complete infrastructure with well-maintained trails, suspension bridges, viewpoints, and a restaurant. It is perfect for swimming, taking photographs, and spending the entire day immersed in nature with comfort.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://cachoeiradoabade.com.br/wp-content/uploads/elementor/thumbs/pirenopolis_cachoeira_do_abade_capa-qbcn9i56t4i7a6im3szv146cjmppmg51r7ce7hsl6c.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://diaonline.ig.com.br/wp-content/uploads/2020/05/cachoeira-do-abade-pirenopolis_7-1536x1024.webp" alt="Cachoeira do Abade" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Cachoeira do Abade:" data-en="Abade Waterfall:">Cachoeira do Abade:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Famosa pela sua queda imponente de 22 metros, possui trilhas bem estruturadas e pontes suspensas." data-en="Famous for its imposing 22-meter drop, it has well-structured trails and suspension bridges.">Famosa pela sua queda imponente de 22 metros, possui trilhas bem estruturadas e pontes suspensas.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- 👇 ITEM: CACHOEIRA DO LÁZARO 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Cachoeira do Lázaro', 
+                                'Lázaro Waterfall', 
+                                'A Cachoeira do Lázaro é ideal para quem procura tranquilidade. Com uma trilha de fácil acesso (cerca de 1,5km), ela revela uma queda d\'água delicada e uma piscina natural muito rasa e cristalina, que forma uma prainha de areia fina. É o destino preferido para famílias com crianças pequenas e para quem gosta de relaxar ao sol.', 
+                                'Lázaro Waterfall is ideal for those seeking tranquility. With an easy-access trail (about 1.5km), it reveals a delicate waterfall and a very shallow, crystal-clear natural pool that forms a fine sand beach. It is the favorite destination for families with small children and for those who like to relax in the sun.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://vargemgrande.pirenopolis.tur.br/images/2023-07_0008.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://vargemgrande.pirenopolis.tur.br/images/2023-07_0005.jpg" alt="Cachoeira do Lázaro" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Cachoeira do Lázaro:" data-en="Lázaro Waterfall:">Cachoeira do Lázaro:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Águas cristalinas e rasas, ideal para relaxar ao som da natureza." data-en="Crystal clear and shallow waters, ideal for relaxing to the sound of nature.">Águas cristalinas e rasas, ideal para relaxar ao som da natureza.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- 👇 ITEM: PARQUE ESTADUAL DOS PIRENEUS 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Parque Estadual dos Pireneus', 
+                                'Pireneus State Park', 
+                                'Situado a 1.385 metros de altitude, este parque abriga o Pico dos Pireneus, o ponto mais alto da região. É a divisória continental das bacias dos rios Tocantins e Paraná. Com formações rochosas milenares que lembram cidades de pedra e campos de altitude repletos de flores do Cerrado, é o local número um para assistir a um dos pores do sol mais incríveis do Brasil.', 
+                                'Located at an altitude of 1,385 meters, this park is home to Pico dos Pireneus, the highest point in the region. It is the continental divide of the Tocantins and Paraná river basins. With ancient rock formations that resemble stone cities and high-altitude fields full of Cerrado flowers, it is the number one spot to watch one of the most incredible sunsets in Brazil.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://villadospireneus.com.br/wp-content/uploads/2024/01/cachoeira-do-lobo-paraiso.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://villadospireneus.com.br/wp-content/uploads/2024/01/cachoeira-mais-alta-de-1.jpg" alt="Parque Estadual dos Pireneus" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Parque Estadual dos Pireneus:" data-en="Pireneus State Park:">Parque Estadual dos Pireneus:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="O ponto mais alto da região, oferecendo vistas panorâmicas espetaculares dos campos de altitude, especialmente durante o pôr do sol." data-en="The highest point in the region, offering spectacular panoramic views of the high-altitude fields, especially during sunset.">O ponto mais alto da região, oferecendo vistas panorâmicas espetaculares dos campos de altitude, especialmente durante o pôr do sol.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div> <!-- FIM VISTA: NATUREZA -->
+
+        <!-- VISTA: CULTURA -->
+        <div id="view-cultura" class="page-view pt-32 pb-24 bg-white min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button onclick="navigate('home', 'atrativos')" class="mb-8 flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="lang-string" data-pt="Voltar aos Atrativos" data-en="Back to Attractions">Voltar aos Atrativos</span>
+                </button>
+                <h1 class="lang-string text-4xl md:text-6xl font-extrabold text-gray-900 mb-6" data-pt="Cultura & Tradição" data-en="Culture & Tradition">Cultura & Tradição</h1>
+                <img src="https://go.agenciasebrae.com.br/wp-content/uploads/sites/9/2023/07/Cavalhadas1-scaled.jpg" alt="Cavalhadas" class="w-full h-80 object-cover rounded-3xl shadow-lg mb-8">
+                <div class="prose prose-lg text-gray-600 max-w-none">
+                    <p class="lang-string mb-4" data-pt="A cultura de Pirenópolis é rica, vibrante e profundamente enraizada na fé e no folclore popular. As ruas ganham cores, sons e vida durante as suas famosas festividades." data-en="The culture of Pirenópolis is rich, vibrant, and deeply rooted in faith and popular folklore. The streets come alive with colors, sounds, and life during its famous festivities.">A cultura de Pirenópolis é rica, vibrante e profundamente enraizada na fé e no folclore popular. As ruas ganham cores, sons e vida durante as suas famosas festividades.</p>
+                    <h3 class="lang-string text-2xl font-bold text-gray-900 mt-8 mb-4" data-pt="Festividades Tradicionais" data-en="Traditional Festivities">Festividades Tradicionais</h3>
+                    <ul class="space-y-4 mb-8">
+                        
+                        <!-- 👇 ITEM: FESTA DO DIVINO 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Festa do Divino', 
+                                'Festival of the Divine', 
+                                'A Festa do Divino Espírito Santo acontece anualmente, 45 dias após a Páscoa. É uma das manifestações religiosas e folclóricas mais exuberantes do Brasil, reconhecida como Patrimônio Cultural Imaterial. A cidade enfeita-se inteira de vermelho e branco. Durante dias ocorrem novenas, fogueiras, procissões, alvoradas com banda de música e a tradicional entrega da Coroa do Divino pelo Imperador da festa.', 
+                                'The Festival of the Divine Holy Spirit takes place annually, 45 days after Easter. It is one of the most exuberant religious and folkloric manifestations in Brazil, recognized as Intangible Cultural Heritage. The whole city is decorated in red and white. For days there are novenas, bonfires, processions, dawns with a music band, and the traditional delivery of the Crown of the Divine by the Emperor of the festival.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://bcr.iphan.gov.br/wp-content/uploads/tainacan-items/65998/70364/Foto-3-Encenacao-dos-Mascarados-2008-Foto_Saulo-Cruz_Acervo-Iphan-GO-scaled.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://bcr.iphan.gov.br/wp-content/uploads/tainacan-items/65998/70361/Foto-2-Danca-do-pau-de-fitas-2008-Foto_Nivaldo-Trindade_Acervo-Iphan-GO-scaled.jpg" alt="Festa do Divino Espírito Santo" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Festa do Divino Espírito Santo:" data-en="Festival of the Divine Holy Spirit:">Festa do Divino Espírito Santo:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Uma das mais importantes celebrações do Brasil, com quase 200 anos de tradição. Envolve novenas, folias, alvoradas e muita música." data-en="One of the most important celebrations in Brazil, with almost 200 years of tradition. It involves novenas, revelries, dawns, and lots of music.">Uma das mais importantes celebrações do Brasil, com quase 200 anos de tradição. Envolve novenas, folias, alvoradas e muita música.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- 👇 ITEM: CAVALHADAS 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Cavalhadas de Pirenópolis', 
+                                'Cavalhadas of Pirenópolis', 
+                                'As Cavalhadas são o ápice das festividades na cidade. Durante três dias, no Cavalhódromo, 24 cavaleiros finamente vestidos encenam as batalhas medievais entre Mouros (de vermelho) e Cristãos (de azul). É uma exibição equestre coreografada lindíssima, introduzida no Brasil pelos portugueses no século XVI e mantida viva pelas famílias locais de geração em geração.', 
+                                'The Cavalhadas are the pinnacle of the festivities in the city. For three days, in the Cavalhódromo, 24 finely dressed riders stage the medieval battles between Moors (in red) and Christians (in blue). It is a beautiful choreographed equestrian exhibition, introduced in Brazil by the Portuguese in the 16th century and kept alive by local families from generation to generation.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'http://www.agitapirenopolis.com.br/uploads/2012/05/campo_das_cavalhadas.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://www.agitapirenopolis.com.br/uploads/2017/11/cavalhadas_de_pirenopolis_agitapirenopolis.jpg" alt="Cavalhadas" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Cavalhadas:" data-en="Cavalhadas:">Cavalhadas:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Uma encenação teatral ao ar livre que representa as batalhas medievais entre Mouros e Cristãos, marcada pelos belos trajes e cavalos adornados." data-en="An open-air theatrical staging representing medieval battles between Moors and Christians, marked by beautiful costumes and adorned horses.">Uma encenação teatral ao ar livre que representa as batalhas medievais entre Mouros e Cristãos, marcada pelos belos trajes e cavalos adornados.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- 👇 ITEM: OS MASCARADOS 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Os Mascarados', 
+                                'The Mascarados', 
+                                'Conhecidos localmente como Curucucus (pelo som que fazem pelas ruas), os Mascarados são personagens anônimos montados a cavalo, vestidos com roupas extremamente coloridas, máscaras de papel machê imitando bois, onças ou demônios, e flores gigantes no chapéu. A sua função é trazer o lado profano, humorístico e irreverente para a Festa do Divino, assustando e brincando com o público.', 
+                                'Known locally as Curucucus (for the sound they make through the streets), the Mascarados are anonymous characters mounted on horseback, dressed in extremely colorful clothes, papier-mâché masks imitating oxen, jaguars or demons, and giant flowers on their hats. Their function is to bring the profane, humorous, and irreverent side to the Divine Festival, scaring and playing with the public.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://curtamais.com.br/goiania/wp-content/uploads/sites/2/2017/07/820247bbb95d7600e5f68b60a95d8562-768x512.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://www.curtamais.com.br/uploads/midias/5088c1c09a4fde0eff3c0a6a9d0f0f72.jpg" alt="Os Mascarados" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Os Mascarados:" data-en="The Mascarados:">Os Mascarados:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Figuras folclóricas que animam as ruas durante as Cavalhadas, usando máscaras coloridas de boi ou onça, interagindo com os visitantes de forma lúdica." data-en="Folkloric figures that enliven the streets during the Cavalhadas, wearing colorful ox or jaguar masks, interacting with visitors in a playful way.">Figuras folclóricas que animam as ruas durante as Cavalhadas, usando máscaras coloridas de boi ou onça, interagindo com os visitantes de forma lúdica.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explanation</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div> <!-- FIM VISTA: CULTURA -->
+
+        <!-- VISTA: GASTRONOMIA -->
+        <div id="view-gastronomia" class="page-view pt-32 pb-24 bg-white min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button onclick="navigate('home', 'atrativos')" class="mb-8 flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="lang-string" data-pt="Voltar aos Atrativos" data-en="Back to Attractions">Voltar aos Atrativos</span>
+                </button>
+                <h1 class="lang-string text-4xl md:text-6xl font-extrabold text-gray-900 mb-6" data-pt="Gastronomia Local" data-en="Local Gastronomy">Gastronomia Local</h1>
+                <img src="https://curtamais.com.br/goiania/wp-content/uploads/sites/2/2023/08/a27dd118cb73124a19e6e43c028f9f6e-768x444.png" alt="Culinária Goiana" class="w-full h-80 object-cover rounded-3xl shadow-lg mb-8">
+                <div class="prose prose-lg text-gray-600 max-w-none">
+                    <p class="lang-string mb-4" data-pt="A culinária goiana é uma atração à parte. Em Pirenópolis, os pratos são preparados com ingredientes regionais e muito carinho, misturando a tradição tropeira com toques contemporâneos." data-en="Goiás cuisine is an attraction in itself. In Pirenópolis, dishes are prepared with regional ingredients and a lot of care, mixing tropeiro tradition with contemporary touches.">A culinária goiana é uma atração à parte. Em Pirenópolis, os pratos são preparados com ingredientes regionais e muito carinho, misturando a tradição tropeira com toques contemporâneos.</p>
+                    <h3 class="lang-string text-2xl font-bold text-gray-900 mt-8 mb-4" data-pt="O que provar:" data-en="What to taste:">O que provar:</h3>
+                    <ul class="space-y-4 mb-8">
+                        
+                        <!-- 👇 ITEM: EMPADÃO GOIANO 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Empadão Goiano', 
+                                'Empadão Goiano (Savory Pie)', 
+                                'O Empadão Goiano é uma torta salgada assada em forno, geralmente servida em panelinhas de barro. A massa fina e crocante por fora guarda um interior suculento e recheado. O grande segredo desta iguaria é a combinação única de frango desfiado, pedaços de lombo de porco, linguiça caseira, muito queijo e os ingredientes regionais indispensáveis: a guariroba (um palmito de sabor amargo) e o famoso pequi amarelo do Cerrado.', 
+                                'The Empadão Goiano is a baked savory pie, usually served in small clay pots. The thin and crispy crust on the outside holds a juicy and stuffed interior. The big secret of this delicacy is the unique combination of shredded chicken, pork loin pieces, homemade sausage, lots of cheese, and the indispensable regional ingredients: guariroba (a bitter-tasting heart of palm) and the famous yellow pequi from the Cerrado.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://p2.trrsf.com/image/fget/cf/774/0/images.terra.com/2023/03/02/958052236-empadao-goiano-tradicional-35404.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://frutaeraiz.com.br/wp-content/uploads/2023/03/empadaoSITE-2-300x300.jpg" alt="Empadão Goiano" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Empadão Goiano:" data-en="Empadão Goiano:">Empadão Goiano:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Uma torta salgada farta, tradicionalmente recheada com frango, lombo, linguiça, queijo, guariroba e, claro, pequi." data-en="A hearty savory pie, traditionally filled with chicken, pork loin, sausage, cheese, guariroba, and, of course, pequi.">Uma torta salgada farta, tradicionalmente recheada com frango, lombo, linguiça, queijo, guariroba e, claro, pequi.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- 👇 ITEM: PAMONHA GOIANA 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Pamonha Goiana', 
+                                'Pamonha', 
+                                'A pamonha de Goiás é famosa em todo o país. É feita ralando o milho verde fresco (direto da espiga) misturado com banha quente. Pode ser recheada de diversas formas: a versão doce (frequentemente com pedaços de queijo minas que derretem no interior) e a versão à moda ou salgada, que leva generosos pedaços de linguiça, queijo e pimenta-bode. O preparado é depois cozido dentro da própria palha do milho.', 
+                                'Goiás pamonha is famous all over the country. It is made by grating fresh green corn (straight from the cob) mixed with hot lard. It can be stuffed in various ways: the sweet version (often with pieces of Minas cheese that melt inside) and the savory version, which takes generous pieces of sausage, cheese, and bode pepper. The preparation is then boiled inside the corn husk itself.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://www.paieterno.com.br/wp-content/uploads/2024/02/Captura-de-tela-2024-02-19-132355.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://atribunadenizar.com/wp-content/uploads/2017/05/pamonha_salgada.jpg" alt="Pamonha" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Pamonha:" data-en="Pamonha:">Pamonha:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="Doce ou salgada, é a rainha dos lanches de rua e das pamonharias locais, feita com milho verde puro." data-en="Sweet or savory, it is the queen of street snacks and local pamonharias, made with pure green corn.">Doce ou salgada, é a rainha dos lanches de rua e das pamonharias locais, feita com milho verde puro.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- 👇 ITEM: RUA DO LAZER 👇 -->
+                        <li class="flex gap-4 sm:gap-6 items-start bg-gray-50 hover:bg-white hover:shadow-md cursor-pointer p-4 rounded-2xl border border-gray-100 transition-all group" 
+                            onclick="openItemModal(
+                                'Rua do Lazer', 
+                                'Rua do Lazer (Leisure Street)', 
+                                'A Rua do Rosário, mais conhecida como Rua do Lazer, é o coração vibrante da vida noturna e gastronômica de Pirenópolis. Trata-se de uma via exclusiva para pedestres, com o chão de pedra coberto pelas mesas e cadeiras dos charmosos restaurantes e bares instalados nos casarões coloniais. À noite, a iluminação amarelada e a música ao vivo criam um ambiente acolhedor, romântico e festivo, imperdível para terminar o dia.', 
+                                'Rua do Rosário, better known as Rua do Lazer, is the vibrant heart of Pirenópolis\' nightlife and gastronomy. It is a pedestrian-only street, with its cobblestone ground covered by tables and chairs from charming restaurants and bars housed in colonial mansions. At night, the yellow lighting and live music create a cozy, romantic, and festive atmosphere, unmissable to end the day.', 
+                                /* 🛑 1. MUDE A IMAGEM GRANDE (DA JANELA/MODAL) AQUI: */ 
+                                'https://imgmd.net/images/c_limit%2Cw_1200/v1/guia/4390188/rua-do-lazer.jpg'
+                            )">
+                            
+                            <!-- 🛑 2. MUDE A IMAGEM PEQUENA (DA LISTA) AQUI no src="..." -->
+                            <img src="https://imgmd.net/images/c_limit%2Cw_1200/v1/guia/4390186/rua-do-lazer.jpg" alt="Rua do Lazer" class="w-16 h-16 sm:w-24 sm:h-24 object-cover rounded-xl shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                            
+                            <div class="flex-1">
+                                <strong class="lang-string text-gray-900 block mb-1 group-hover:text-brand-600 transition-colors" data-pt="Rua do Lazer:" data-en="Rua do Lazer (Leisure Street):">Rua do Lazer:</strong>
+                                <span class="lang-string text-sm sm:text-base" data-pt="O ponto de encontro gastronómico da cidade à noite. Repleta de mesas na rua, luzes acolhedoras, música ao vivo e restaurantes de alta qualidade." data-en="The city's gastronomic meeting point at night. Full of street tables, cozy lights, live music, and high-quality restaurants.">O ponto de encontro gastronómico da cidade à noite. Repleta de mesas na rua, luzes acolhedoras, música ao vivo e restaurantes de alta qualidade.</span>
+                                <div class="mt-2 text-brand-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    <span class="lang-string" data-pt="Ler explicação" data-en="Read explanation">Ler explicação</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div> <!-- FIM VISTA: GASTRONOMIA -->
+
+        <!-- VISTA: HISTORIA DETALHADA -->
+        <div id="view-historia-detalhe" class="page-view pt-32 pb-24 bg-white min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button onclick="navigate('home', 'historia')" class="mb-8 flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="lang-string" data-pt="Voltar à História" data-en="Back to History">Voltar à História</span>
+                </button>
+                <h1 class="lang-string text-4xl md:text-6xl font-extrabold text-gray-900 mb-6" data-pt="História Detalhada" data-en="Detailed History">História Detalhada</h1>
+                <img src="https://www.temporadaempiri.com.br/media/63a761c660c15311b69ae476" alt="Arquitetura Colonial" class="w-full h-80 object-cover rounded-3xl shadow-lg mb-8">
+                <div class="prose prose-lg text-gray-600 max-w-none">
+                    <p class="lang-string mb-4" data-pt="Pirenópolis, carinhosamente chamada de 'Piri', foi fundada em 7 de outubro de 1727, inicialmente com o nome de Minas de Nossa Senhora do Rosário de Meia Ponte." data-en="Pirenópolis, affectionately called 'Piri', was founded on October 7, 1727, initially named Minas de Nossa Senhora do Rosário de Meia Ponte.">Pirenópolis, carinhosamente chamada de 'Piri', foi fundada em 7 de outubro de 1727, inicialmente com o nome de Minas de Nossa Senhora do Rosário de Meia Ponte.</p>
+                    <p class="lang-string mb-4" data-pt="A cidade cresceu ao redor da exploração do ouro. Com o declínio do ciclo do ouro, a economia virou-se para a agricultura e o comércio, tornando Meia Ponte um importante polo na rota do interior do Brasil." data-en="The city grew around gold exploration. With the decline of the gold rush, the economy turned to agriculture and commerce, making Meia Ponte an important hub on the route to the interior of Brazil.">A cidade cresceu ao redor da exploração do ouro. Com o declínio do ciclo do ouro, a economia virou-se para a agricultura e o comércio, tornando Meia Ponte um importante polo na rota do interior do Brasil.</p>
+                    <p class="lang-string mb-4" data-pt="Em 1890, o nome foi alterado para Pirenópolis, em homenagem à Serra dos Pireneus, que circunda a região. Hoje, o seu conjunto arquitetónico, urbanístico e paisagístico é tombado pelo IPHAN, garantindo a preservação dos seus imponentes casarões e ruas centenárias revestidas de pedra." data-en="In 1890, the name was changed to Pirenópolis, in honor of the Serra dos Pireneus mountain range surrounding the region. Today, its architectural, urban, and landscape complex is listed by IPHAN, ensuring the preservation of its imposing mansions and centuries-old cobblestone streets.">Em 1890, o nome foi alterado para Pirenópolis, em homenagem à Serra dos Pireneus, que circunda a região. Hoje, o seu conjunto arquitetónico, urbanístico e paisagístico é tombado pelo IPHAN, garantindo a preservação dos seus imponentes casarões e ruas centenárias revestidas de pedra.</p>
+                </div>
+            </div>
+        </div> <!-- FIM VISTA: HISTORIA DETALHADA -->
+
+        <!-- VISTA: GUIA COMPLETO -->
+        <div id="view-guia" class="page-view pt-32 pb-24 bg-white min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button onclick="navigate('home')" class="mb-8 flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="lang-string" data-pt="Voltar ao Início" data-en="Back to Home">Voltar ao Início</span>
+                </button>
+                <h1 class="lang-string text-4xl md:text-6xl font-extrabold text-gray-900 mb-6" data-pt="Guia do Viajante" data-en="Traveler's Guide">Guia do Viajante</h1>
+                <img src="https://reservasprivadasdocerrado.com.br/wp-content/uploads/2021/06/177083c18be73cf9e3e6a2a71828ca32529ada0c.jpeg" alt="Cerrado View" class="w-full h-80 object-cover rounded-3xl shadow-lg mb-8">
+                <div class="prose prose-lg text-gray-600 max-w-none">
+                    <p class="lang-string mb-4" data-pt="Preparar a sua viagem para Pirenópolis é o primeiro passo para uma experiência inesquecível. Aqui estão algumas dicas essenciais:" data-en="Preparing your trip to Pirenópolis is the first step to an unforgettable experience. Here are some essential tips:">Preparar a sua viagem para Pirenópolis é o primeiro passo para uma experiência inesquecível. Aqui estão algumas dicas essenciais:</p>
+                    <h3 class="lang-string text-2xl font-bold text-gray-900 mt-8 mb-4" data-pt="Como Chegar" data-en="How to Get There">Como Chegar</h3>
+                    <p class="lang-string mb-4" data-pt="Localizada estrategicamente entre Brasília (cerca de 150 km) e Goiânia (cerca de 130 km), o acesso mais comum é de carro ou autocarro partindo de uma destas capitais. A estrada é pavimentada e oferece belas vistas." data-en="Strategically located between Brasília (about 150 km) and Goiânia (about 130 km), the most common access is by car or bus from one of these capitals. The road is paved and offers beautiful views.">Localizada estrategicamente entre Brasília (cerca de 150 km) e Goiânia (cerca de 130 km), o acesso mais comum é de carro ou autocarro partindo de uma destas capitais. A estrada é pavimentada e oferece belas vistas.</p>
+                    <h3 class="lang-string text-2xl font-bold text-gray-900 mt-8 mb-4" data-pt="Quando Visitar" data-en="When to Visit">Quando Visitar</h3>
+                    <p class="lang-string mb-4" data-pt="A região possui duas estações bem definidas. A seca (maio a setembro) é ideal para quem prefere tempo firme e banhos de cachoeira sem risco de chuvas súbitas. A estação das chuvas (outubro a abril) deixa o Cerrado verde e as cachoeiras com maior volume de água." data-en="The region has two well-defined seasons. The dry season (May to September) is ideal for those who prefer clear weather and waterfall baths without the risk of sudden rains. The rainy season (October to April) leaves the Cerrado green and the waterfalls with greater water volume.">A região possui duas estações bem definidas. A seca (maio a setembro) é ideal para quem prefere tempo firme e banhos de cachoeira sem risco de chuvas súbitas. A estação das chuvas (outubro a abril) deixa o Cerrado verde e as cachoeiras com maior volume de água.</p>
+                </div>
+            </div>
+        </div> <!-- FIM VISTA: GUIA COMPLETO -->
+
+        <!-- VISTA: PASSAGENS -->
+        <div id="view-passagens" class="page-view pt-32 pb-24 bg-slate-50 min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <button onclick="navigate('home')" class="mb-8 flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="lang-string" data-pt="Voltar ao Início" data-en="Back to Home">Voltar ao Início</span>
+                </button>
+                
+                <h1 class="lang-string text-3xl md:text-5xl font-extrabold text-gray-900 mb-2" data-pt="Passagens: Formosa ➔ Pirenópolis" data-en="Tickets: Formosa ➔ Pirenópolis">Passagens: Formosa ➔ Pirenópolis</h1>
+                <p class="lang-string text-gray-600 mb-8" data-pt="Consulte os horários e reserve a sua viagem." data-en="Check the schedules and book your trip.">Consulte os horários e reserve a sua viagem.</p>
+
+                <!-- Aviso sobre voos -->
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 flex gap-4 items-start">
+                    <div class="text-blue-500 text-2xl mt-1">✈️</div>
+                    <div>
+                        <h4 class="lang-string font-bold text-blue-900 mb-1" data-pt="Aviso sobre Voos" data-en="Notice about Flights">Aviso sobre Voos</h4>
+                        <p class="lang-string text-blue-800 text-sm" data-pt="Pirenópolis não possui aeroporto comercial. O trajeto de Formosa para Pirenópolis é feito por via terrestre (ônibus ou carro). Os aeroportos mais próximos ficam em Brasília (BSB) e Goiânia (GYN)." data-en="Pirenópolis does not have a commercial airport. The journey from Formosa to Pirenópolis is done by land (bus or car). The closest airports are in Brasília (BSB) and Goiânia (GYN).">Pirenópolis não possui aeroporto comercial. O trajeto de Formosa para Pirenópolis é feito por via terrestre (ônibus ou carro). Os aeroportos mais próximos ficam em Brasília (BSB) e Goiânia (GYN).</p>
+                    </div>
+                </div>
+
+                <!-- Filtro de Datas (Simulado) -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <select class="bg-transparent text-gray-700 font-semibold focus:outline-none cursor-pointer">
+                            <option>10 de Abril de 2026</option>
+                            <option>11 de Abril de 2026</option>
+                            <option>12 de Abril de 2026</option>
+                        </select>
+                    </div>
+                    <div class="text-sm text-gray-500 lang-string" data-pt="2 viagens encontradas" data-en="2 trips found">2 viagens encontradas</div>
+                </div>
+
+                <!-- Lista de Passagens -->
+                <div class="space-y-4">
+                    <!-- Passagem 1 -->
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-lg transition-shadow">
+                        <div class="flex-1 w-full">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="bg-brand-100 text-brand-700 text-xs font-bold px-2 py-1 rounded-md lang-string" data-pt="Ônibus" data-en="Bus">Ônibus</span>
+                                <span class="text-sm text-gray-500">Viação Expresso Regional</span>
+                            </div>
+                            <div class="flex items-center justify-between relative">
+                                <!-- Linha pontilhada conectora -->
+                                <div class="absolute left-[50%] top-1/2 -translate-y-1/2 w-1/3 border-t-2 border-dashed border-gray-200 hidden sm:block"></div>
+                                
+                                <div class="text-center sm:text-left">
+                                    <div class="text-2xl font-black text-gray-900">07:00</div>
+                                    <div class="text-sm text-gray-500 font-medium">Formosa (GO)</div>
+                                </div>
+                                <div class="text-center bg-white px-2 z-10 hidden sm:block">
+                                    <div class="text-xs text-gray-400 font-medium lang-string" data-pt="~4h 30m" data-en="~4h 30m">~4h 30m</div>
+                                    <div class="text-xs text-brand-500 font-bold lang-string" data-pt="1 Troca (Brasília)" data-en="1 Connection (Brasília)">1 Troca (Brasília)</div>
+                                </div>
+                                <div class="text-center sm:text-right">
+                                    <div class="text-2xl font-black text-gray-900">11:30</div>
+                                    <div class="text-sm text-gray-500 font-medium">Pirenópolis (GO)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-auto flex flex-col items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
+                            <div class="text-sm text-gray-500 lang-string" data-pt="A partir de" data-en="From">A partir de</div>
+                            <div class="text-3xl font-bold text-gray-900 mb-3">R$ 95<span class="text-base text-gray-500">,00</span></div>
+                            <button class="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-md lang-string" data-pt="Comprar" data-en="Buy Ticket">Comprar</button>
+                        </div>
+                    </div>
+
+                    <!-- Passagem 2 -->
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-lg transition-shadow">
+                        <div class="flex-1 w-full">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="bg-brand-100 text-brand-700 text-xs font-bold px-2 py-1 rounded-md lang-string" data-pt="Ônibus" data-en="Bus">Ônibus</span>
+                                <span class="text-sm text-gray-500">Viação Expresso Regional</span>
+                            </div>
+                            <div class="flex items-center justify-between relative">
+                                <div class="absolute left-[50%] top-1/2 -translate-y-1/2 w-1/3 border-t-2 border-dashed border-gray-200 hidden sm:block"></div>
+                                
+                                <div class="text-center sm:text-left">
+                                    <div class="text-2xl font-black text-gray-900">14:00</div>
+                                    <div class="text-sm text-gray-500 font-medium">Formosa (GO)</div>
+                                </div>
+                                <div class="text-center bg-white px-2 z-10 hidden sm:block">
+                                    <div class="text-xs text-gray-400 font-medium lang-string" data-pt="~4h 30m" data-en="~4h 30m">~4h 30m</div>
+                                    <div class="text-xs text-brand-500 font-bold lang-string" data-pt="1 Troca (Brasília)" data-en="1 Connection (Brasília)">1 Troca (Brasília)</div>
+                                </div>
+                                <div class="text-center sm:text-right">
+                                    <div class="text-2xl font-black text-gray-900">18:30</div>
+                                    <div class="text-sm text-gray-500 font-medium">Pirenópolis (GO)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-auto flex flex-col items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
+                            <div class="text-sm text-gray-500 lang-string" data-pt="A partir de" data-en="From">A partir de</div>
+                            <div class="text-3xl font-bold text-gray-900 mb-3">R$ 95<span class="text-base text-gray-500">,00</span></div>
+                            <button class="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-md lang-string" data-pt="Comprar" data-en="Buy Ticket">Comprar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- FIM VISTA: PASSAGENS -->
+
+    </div> <!-- FIM DO CONTAINER SPA -->
+
+    <!-- Rodapé -->
+    <footer class="bg-gray-900 pt-16 pb-8 border-t border-gray-800 text-gray-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 border-b border-gray-800 pb-12">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                        </div>
+                        <span class="font-bold text-xl text-white">FlyRoute</span>
+                    </div>
+                    <p class="lang-string text-gray-400 text-sm" data-pt="O seu guia digital para as melhores experiências turísticas em Pirenópolis." data-en="Your digital guide to the best tourist experiences in Pirenópolis.">
+                        O seu guia digital para as melhores experiências turísticas em Pirenópolis.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="lang-string font-semibold text-white mb-4" data-pt="Menu" data-en="Menu">Menu</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" onclick="navigate('home', 'inicio'); return false;" class="lang-string text-gray-400 hover:text-brand-500 transition-colors" data-pt="Início" data-en="Home">Início</a></li>
+                        <li><a href="#" onclick="navigate('home', 'historia'); return false;" class="lang-string text-gray-400 hover:text-brand-500 transition-colors" data-pt="História" data-en="History">História</a></li>
+                        <li><a href="#" onclick="navigate('home', 'atrativos'); return false;" class="lang-string text-gray-400 hover:text-brand-500 transition-colors" data-pt="Atrativos" data-en="Attractions">Atrativos</a></li>
+                        <li><a href="#" onclick="navigate('passagens'); return false;" class="lang-string text-gray-400 hover:text-brand-500 transition-colors" data-pt="Passagens" data-en="Tickets">Passagens</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="lang-string font-semibold text-white mb-4" data-pt="Contacto" data-en="Contact">Contacto</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li>turismo@flyroute.com</li>
+                        <li class="lang-string" data-pt="Pirenópolis, Goiás - Brasil" data-en="Pirenópolis, Goiás - Brazil">Pirenópolis, Goiás - Brasil</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-xs">
+                    &copy; 2026 FlyRoute. <span class="lang-string" data-pt="Todos os direitos reservados." data-en="All rights reserved.">Todos os direitos reservados.</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DE EXPLICAÇÃO DO ITEM -->
+    <div id="item-modal" class="fixed inset-0 z-[100] bg-black/60 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300 backdrop-blur-sm">
+        <div id="item-modal-content" class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 transition-transform duration-300 relative">
+            <!-- Botão Fechar -->
+            <button onclick="closeItemModal()" class="absolute top-4 right-4 text-gray-800 bg-white/80 hover:bg-white rounded-full p-2 z-10 transition-colors shadow-sm">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <!-- Imagem e Conteúdo do Modal -->
+            <img id="modal-img" src="" alt="Imagem" class="w-full h-64 sm:h-80 object-cover">
+            <div class="p-6 sm:p-8">
+                <h3 id="modal-title" class="text-2xl sm:text-3xl font-bold text-brand-900 mb-4 lang-string"></h3>
+                <div class="w-12 h-1 bg-accent-500 mb-6 rounded-full"></div>
+                <p id="modal-desc" class="text-gray-600 leading-relaxed text-lg lang-string"></p>
+                <div class="mt-8 flex justify-end">
+                    <button onclick="closeItemModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-full font-medium transition-colors lang-string" data-pt="Fechar" data-en="Close">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Interatividade e Tradução -->
+    <script>
+        // Variável Global para o idioma
+        let currentLanguage = 'pt';
+
+        // Lógica do Modal de Detalhes
+        function openItemModal(titlePt, titleEn, descPt, descEn, imgSrc) {
+            const modal = document.getElementById('item-modal');
+            const modalImg = document.getElementById('modal-img');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDesc = document.getElementById('modal-desc');
+            const modalContent = document.getElementById('item-modal-content');
+
+            // Atualiza os atributos de linguagem no modal
+            modalTitle.setAttribute('data-pt', titlePt);
+            modalTitle.setAttribute('data-en', titleEn);
+            modalTitle.innerHTML = currentLanguage === 'pt' ? titlePt : titleEn;
+
+            modalDesc.setAttribute('data-pt', descPt);
+            modalDesc.setAttribute('data-en', descEn);
+            modalDesc.innerHTML = currentLanguage === 'pt' ? descPt : descEn;
+
+            modalImg.src = imgSrc;
+
+            // Mostra o Modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // Impede o scroll na página de fundo
+
+            // Animação de entrada
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeItemModal() {
+            const modal = document.getElementById('item-modal');
+            const modalContent = document.getElementById('item-modal-content');
+
+            // Animação de saída
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            document.body.style.overflow = ''; // Devolve o scroll à página
+
+            // Oculta o Modal após a animação
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        // Fechar modal clicando fora do quadro branco
+        document.getElementById('item-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeItemModal();
+            }
+        });
+
+        // Lógica do Roteador SPA (Single Page Application)
+        function navigate(viewId, sectionId = null) {
+            // Esconder todas as páginas
+            document.querySelectorAll('.page-view').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Mostrar a página alvo
+            const targetView = document.getElementById('view-' + viewId);
+            if(targetView) {
+                targetView.classList.add('active');
+            }
+
+            // Fechar menu mobile se estiver aberto
+            document.getElementById('mobile-menu').classList.add('hidden');
+
+            // Scroll suave (com pequeno atraso para a DOM atualizar)
+            setTimeout(() => {
+                if (sectionId) {
+                    const section = document.getElementById(sectionId);
+                    if (section) section.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 50);
+        }
+
+        // Lógica de Tradução
+        function setLanguage(lang) {
+            currentLanguage = lang; // Guarda o idioma selecionado
+            // Atualizar os textos
+            const elements = document.querySelectorAll('.lang-string');
+            elements.forEach(el => {
+                if(el.getAttribute(`data-${lang}`)) {
+                    el.innerHTML = el.getAttribute(`data-${lang}`);
+                }
+            });
+
+            // Atualizar estilos dos botões (Desktop)
+            const btnPt = document.getElementById('btn-pt');
+            const btnEn = document.getElementById('btn-en');
+            
+            // Atualizar estilos dos botões (Mobile)
+            const btnPtMob = document.getElementById('btn-pt-mob');
+            const btnEnMob = document.getElementById('btn-en-mob');
+
+            if(lang === 'pt') {
+                btnPt.className = "px-3 py-1 rounded-full text-sm font-bold bg-white shadow-sm text-brand-600 transition-all";
+                btnEn.className = "px-3 py-1 rounded-full text-sm font-bold text-gray-500 hover:text-gray-700 transition-all";
+                
+                btnPtMob.className = "px-2 py-1 rounded-full text-xs font-bold bg-white shadow-sm text-brand-600 transition-all";
+                btnEnMob.className = "px-2 py-1 rounded-full text-xs font-bold text-gray-500 transition-all";
+            } else {
+                btnEn.className = "px-3 py-1 rounded-full text-sm font-bold bg-white shadow-sm text-brand-600 transition-all";
+                btnPt.className = "px-3 py-1 rounded-full text-sm font-bold text-gray-500 hover:text-gray-700 transition-all";
+                
+                btnEnMob.className = "px-2 py-1 rounded-full text-xs font-bold bg-white shadow-sm text-brand-600 transition-all";
+                btnPtMob.className = "px-2 py-1 rounded-full text-xs font-bold text-gray-500 transition-all";
+            }
+        }
+
+        // Lógica do Menu Mobile
+        const btnMenu = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+
+        btnMenu.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // Fechar menu ao clicar num link
+        const menuLinks = menu.querySelectorAll('a');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
+        });
+
+        // Sombra na navegação ao fazer scroll
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                navbar.classList.add('shadow-sm');
+            } else {
+                navbar.classList.remove('shadow-sm');
+            }
+        });
+    </script>
+</body>
+</html>
